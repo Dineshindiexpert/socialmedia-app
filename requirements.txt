@@ -5,3 +5,4 @@ python-engineio
 eventlet
 Flask-WTF
 WTForms
+gunicorn
