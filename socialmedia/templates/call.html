@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block title %}Video Call{% endblock %}
+{% block content %}
+<h2>Video Call Room</h2>
+
+<label>Room Name:</label>
+<input type="text" id="room" value="global">
+<button onclick="joinCall()">Join Room</button>
+
+<div style="margin-top: 20px;">
+  <video id="localVideo" autoplay muted playsinline style="width: 45%;"></video>
+  <video id="remoteVideo" autoplay playsinline style="width: 45%;"></video>
+</div>
+
+<script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+<script>
+    const username = "{{ username }}";
+</script>
+<script src="{{ url_for('static', filename='js/call.js') }}"></script>
+{% endblock %}

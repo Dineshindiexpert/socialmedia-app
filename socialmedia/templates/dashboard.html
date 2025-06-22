@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<h2>Welcome, {{ user.username }}</h2>
+<a href="{{ url_for('main.upload_post') }}">📸 Upload Post</a> |
+<a href="{{ url_for('main.view_posts') }}">🖼 View Feed</a>
+<br><br>
+
+<img src="{{ url_for('static', filename='uploads/' + user.profile_pic) }}" alt="Profile Photo" width="150">
+<p>Email: {{ user.email }}</p>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block title %}Chat Room{% endblock %}
+{% block content %}
+<h2>Welcome, {{ username }}</h2>
+
+<label for="room">Enter Room:</label>
+<input type="text" id="room" value="global">
+<button onclick="joinRoom()">Join</button>
+<br><br>
+
+<div id="chatBox" style="border: 1px solid #ccc; height: 300px; overflow-y: scroll; padding: 10px;"></div>
+
+<input type="text" id="msgInput" placeholder="Type a message">
+<button onclick="sendMsg()">Send</button>
+
+<script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+<script>
+    const username = "{{ username }}";
+</script>
+<script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+{% endblock %}
