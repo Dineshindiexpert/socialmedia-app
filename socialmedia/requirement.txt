@@ -2,6 +2,6 @@ Flask
 Flask-SocketIO
 python-socketio
 python-engineio
+eventlet
 Flask-WTF
 WTForms
-eventlet
