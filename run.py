@@ -1,7 +1,10 @@
-from app import create_app
+from flask import Flask
 
-# Initialize Flask app using the factory
-app = create_app()
+app = Flask(__name__)
+
+@app.route('/')
+def home():
+    return "App is working!"
 
 if __name__ == "__main__":
     app.run(debug=True)
