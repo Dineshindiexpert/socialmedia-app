@@ -1,21 +1,44 @@
+<!-- templates/chat.html -->
 {% extends 'base.html' %}
-{% block title %}Chat Room{% endblock %}
+
+{% block title %}Chat - InstaClone{% endblock %}
+
 {% block content %}
-<h2>Welcome, {{ username }}</h2>
+<h3>Live Chat</h3>
+<div class="card">
+  <div class="card-body" id="chat-box" style="height: 300px; overflow-y: scroll; background: #f9f9f9;"></div>
+  <div class="card-footer">
+    <form id="chat-form">
+      <div class="input-group">
+        <input type="text" class="form-control" id="chat-message" placeholder="Type your message...">
+        <emoji-picker style="position: absolute; bottom: 50px; right: 20px;"></emoji-picker>
+        <button class="btn btn-primary" type="submit">Send</button>
+      </div>
+    </form>
+  </div>
+</div>
 
-<label for="room">Enter Room:</label>
-<input type="text" id="room" value="global">
-<button onclick="joinRoom()">Join</button>
-<br><br>
-
-<div id="chatBox" style="border: 1px solid #ccc; height: 300px; overflow-y: scroll; padding: 10px;"></div>
-
-<input type="text" id="msgInput" placeholder="Type a message">
-<button onclick="sendMsg()">Send</button>
-
-<script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
 <script>
-    const username = "{{ username }}";
+  const socket = io();
+
+  const chatForm = document.getElementById('chat-form');
+  const chatBox = document.getElementById('chat-box');
+  const messageInput = document.getElementById('chat-message');
+
+  chatForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const msg = messageInput.value;
+    if (msg.trim()) {
+      socket.emit('send_message', msg);
+      messageInput.value = '';
+    }
+  });
+
+  socket.on('receive_message', function(msg) {
+    const p = document.createElement('p');
+    p.textContent = msg;
+    chatBox.appendChild(p);
+    chatBox.scrollTop = chatBox.scrollHeight;
+  });
 </script>
-<script src="{{ url_for('static', filename='js/chat.js') }}"></script>
 {% endblock %}

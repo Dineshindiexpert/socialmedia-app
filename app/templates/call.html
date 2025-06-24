@@ -1,20 +1,99 @@
+
+<!-- templates/call.html -->
 {% extends 'base.html' %}
-{% block title %}Video Call{% endblock %}
+
+{% block title %}Video Call - InstaClone{% endblock %}
+
 {% block content %}
-<h2>Video Call Room</h2>
+<h3>Start a Video Call</h3>
+<video id="localVideo" autoplay muted playsinline style="width: 45%; border: 2px solid #ccc;"></video>
+<video id="remoteVideo" autoplay playsinline style="width: 45%; border: 2px solid #ccc;"></video>
 
-<label>Room Name:</label>
-<input type="text" id="room" value="global">
-<button onclick="joinCall()">Join Room</button>
-
-<div style="margin-top: 20px;">
-  <video id="localVideo" autoplay muted playsinline style="width: 45%;"></video>
-  <video id="remoteVideo" autoplay playsinline style="width: 45%;"></video>
+<div class="mt-3">
+  <button class="btn btn-success" onclick="startCall()">Start Call</button>
+  <button class="btn btn-danger" onclick="endCall()">End Call</button>
 </div>
 
-<script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
 <script>
-    const username = "{{ username }}";
+  const socket = io();
+  let localStream;
+  let peerConnection;
+
+  const localVideo = document.getElementById('localVideo');
+  const remoteVideo = document.getElementById('remoteVideo');
+
+  const servers = {
+    iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+  };
+
+  async function startCall() {
+    localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    localVideo.srcObject = localStream;
+
+    peerConnection = new RTCPeerConnection(servers);
+    localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+
+    peerConnection.ontrack = e => {
+      remoteVideo.srcObject = e.streams[0];
+    };
+
+    peerConnection.onicecandidate = e => {
+      if (e.candidate) {
+        socket.emit('ice-candidate', e.candidate);
+      }
+    };
+
+    const offer = await peerConnection.createOffer();
+    await peerConnection.setLocalDescription(offer);
+    socket.emit('video-offer', offer);
+  }
+
+  function endCall() {
+    if (peerConnection) {
+      peerConnection.close();
+      peerConnection = null;
+    }
+    if (localStream) {
+      localStream.getTracks().forEach(track => track.stop());
+      localVideo.srcObject = null;
+      remoteVideo.srcObject = null;
+    }
+    socket.emit('end-call');
+  }
+
+  socket.on('video-offer', async offer => {
+    localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    localVideo.srcObject = localStream;
+
+    peerConnection = new RTCPeerConnection(servers);
+    localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+
+    peerConnection.ontrack = e => {
+      remoteVideo.srcObject = e.streams[0];
+    };
+
+    peerConnection.onicecandidate = e => {
+      if (e.candidate) {
+        socket.emit('ice-candidate', e.candidate);
+      }
+    };
+
+    await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
+    const answer = await peerConnection.createAnswer();
+    await peerConnection.setLocalDescription(answer);
+    socket.emit('video-answer', answer);
+  });
+
+  socket.on('video-answer', answer => {
+    peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
+  });
+
+  socket.on('ice-candidate', candidate => {
+    peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+  });
+
+  socket.on('end-call', () => {
+    endCall();
+  });
 </script>
-<script src="{{ url_for('static', filename='js/call.js') }}"></script>
 {% endblock %}

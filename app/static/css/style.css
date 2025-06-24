@@ -1,0 +1,5 @@
+body { background: #fff; font-family: Arial, sans-serif; }
+.snap-card { border: none; border-radius: 10px; overflow: hidden; }
+.snap-media { object-fit: cover; }
+.navbar .nav-link { color: #333; }
+.nav-label { font-size: 0.6rem; }

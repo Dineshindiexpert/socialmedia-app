@@ -1,8 +1,7 @@
-Flask
-Flask-SocketIO
-python-socketio
-python-engineio
 eventlet
-Flask-WTF
-WTForms
+flask-socketio
+Flask
+Flask-SQLAlchemy
+Flask-Login
+Werkzeug
 gunicorn
