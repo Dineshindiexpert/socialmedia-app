@@ -1,5 +1,3 @@
-
-<!-- templates/call.html -->
 {% extends 'base.html' %}
 
 {% block title %}Video Call - InstaClone{% endblock %}
@@ -14,6 +12,9 @@
   <button class="btn btn-danger" onclick="endCall()">End Call</button>
 </div>
 
+<!-- 🔊 Ringtone -->
+<audio id="ringtone" src="{{ url_for('static', filename='ringtone.mp3') }}"></audio>
+
 <script>
   const socket = io();
   let localStream;
@@ -21,12 +22,16 @@
 
   const localVideo = document.getElementById('localVideo');
   const remoteVideo = document.getElementById('remoteVideo');
+  const ringtone = document.getElementById('ringtone');
 
   const servers = {
     iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
   };
 
   async function startCall() {
+    // 🔊 Play ringtone
+    ringtone.play();
+
     localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
     localVideo.srcObject = localStream;
 
@@ -35,6 +40,10 @@
 
     peerConnection.ontrack = e => {
       remoteVideo.srcObject = e.streams[0];
+
+      // 🔇 Stop ringtone when remote stream connects
+      ringtone.pause();
+      ringtone.currentTime = 0;
     };
 
     peerConnection.onicecandidate = e => {
@@ -53,15 +62,23 @@
       peerConnection.close();
       peerConnection = null;
     }
+
     if (localStream) {
       localStream.getTracks().forEach(track => track.stop());
       localVideo.srcObject = null;
       remoteVideo.srcObject = null;
     }
+
+    // 🔇 Stop ringtone if still playing
+    ringtone.pause();
+    ringtone.currentTime = 0;
+
     socket.emit('end-call');
   }
 
   socket.on('video-offer', async offer => {
+    ringtone.play(); // 🔊 Ringtone for incoming offer
+
     localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
     localVideo.srcObject = localStream;
 
@@ -70,6 +87,8 @@
 
     peerConnection.ontrack = e => {
       remoteVideo.srcObject = e.streams[0];
+      ringtone.pause();
+      ringtone.currentTime = 0;
     };
 
     peerConnection.onicecandidate = e => {
