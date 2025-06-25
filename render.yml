@@ -1,9 +1,0 @@
-services:
-  - type: web
-    name: socialmedia-app
-    env: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn run:app --worker-class eventlet -w 1
-    envVars:
-      - key: FLASK_ENV
-        value: production

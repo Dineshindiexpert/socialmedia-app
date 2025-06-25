@@ -3,43 +3,66 @@
 <div class="story-viewer">
     <h2>{{ story_user.username }}'s Story</h2>
     <div class="story-frame">
-        <img src="{{ url_for('static', filename='stories/' ~ story.image) }}" id="storyImage">
+        <img src="{{ url_for('static', filename='stories/' ~ story.image) }}" id="storyImage" alt="Story Image">
     </div>
-
     <div class="story-controls">
-        {% if prev_story_id %}
-        <a href="{{ url_for('main.story_view', story_id=prev_story_id) }}"><button>⬅️ Prev</button></a>
-        {% endif %}
-        {% if next_story_id %}
-        <a href="{{ url_for('main.story_view', story_id=next_story_id) }}"><button>➡️ Next</button></a>
-        {% endif %}
-        <a href="{{ url_for('main.home') }}"><button>🏠 Home</button></a>
+        <a href="{{ url_for('main.home') }}">
+            <button class="back-btn">Back to Home</button>
+        </a>
     </div>
 </div>
 
 <style>
 .story-viewer {
     text-align: center;
-    padding: 20px;
+    padding: 30px;
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(to bottom, #ffffff, #f0f0f0);
+    min-height: 100vh;
 }
+
+.story-viewer h2 {
+    font-size: 24px;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.story-frame {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
 .story-frame img {
-    width: 80%;
+    width: 90%;
     max-width: 500px;
     height: auto;
-    border-radius: 20px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    border-radius: 15px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease;
 }
+
+.story-frame img:hover {
+    transform: scale(1.03);
+}
+
 .story-controls {
-    margin-top: 20px;
+    margin-top: 30px;
+}
+
+.back-btn {
+    padding: 10px 25px;
+    font-size: 16px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.back-btn:hover {
+    background-color: #0056b3;
 }
 </style>
-
-<script>
-// Auto move to next story after 5 seconds
-setTimeout(() => {
-    {% if next_story_id %}
-    window.location.href = "{{ url_for('main.story_view', story_id=next_story_id) }}";
-    {% endif %}
-}, 5000);
-</script>
 {% endblock %}
