@@ -1,24 +1,12 @@
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager
+from flask_socketio import SocketIO
 
-db = SQLAlchemy()
-login_manager = LoginManager()
+# Create the Flask app instance
+app = Flask(__name__)
+app.config['SECRET_KEY'] = 'your_secret_key_here'
 
-def create_app():
-    app = Flask(__name__)
-    app.config['SECRET_KEY'] = 'your-secret-key'
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///socialmedia.db'
-    db.init_app(app)
-    login_manager.init_app(app)
+# Initialize SocketIO
+socketio = SocketIO(app)
 
-    from .models import User
-
-    @login_manager.user_loader
-    def load_user(user_id):
-        return User.query.get(int(user_id))
-
-    from .routes import main
-    app.register_blueprint(main)
-
-    return app
+# Import routes (must come after app is created)
+from app import routes
