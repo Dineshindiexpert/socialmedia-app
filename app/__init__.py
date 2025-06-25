@@ -5,24 +5,26 @@ from flask_socketio import SocketIO
 import os
 
 db = SQLAlchemy()
+socketio = SocketIO(cors_allowed_origins="*")
 login_manager = LoginManager()
-socketio = SocketIO(cors_allowed_origins="*")  # Allow CORS for WebRTC signaling
 
 def create_app():
-    app = Flask(__name__, static_folder='static')
-
-    # Basic config
+    app = Flask(__name__)
     app.config['SECRET_KEY'] = 'supersecretkey'
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite3'
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///socialmedia.db'
+    app.config['UPLOAD_FOLDER'] = 'app/static/uploads'
+    app.config['PROFILE_FOLDER'] = 'app/static/avatars'
+    app.config['STORY_FOLDER'] = 'app/static/stories'
 
-    # Init extensions
     db.init_app(app)
-    login_manager.init_app(app)
     socketio.init_app(app)
+    login_manager.init_app(app)
+    login_manager.login_view = 'login'
 
-    # Import routes after app init to avoid circular import
-    from .routes import main as main_blueprint
-    app.register_blueprint(main_blueprint)
+    from app.routes import main
+    app.register_blueprint(main)
+
+    with app.app_context():
+        db.create_all()
 
     return app

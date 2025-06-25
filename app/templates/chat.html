@@ -1,44 +1,79 @@
-<!-- templates/chat.html -->
 {% extends 'base.html' %}
-
-{% block title %}Chat - InstaClone{% endblock %}
-
 {% block content %}
-<h3>Live Chat</h3>
-<div class="card">
-  <div class="card-body" id="chat-box" style="height: 300px; overflow-y: scroll; background: #f9f9f9;"></div>
-  <div class="card-footer">
-    <form id="chat-form">
-      <div class="input-group">
-        <input type="text" class="form-control" id="chat-message" placeholder="Type your message...">
-        <emoji-picker style="position: absolute; bottom: 50px; right: 20px;"></emoji-picker>
-        <button class="btn btn-primary" type="submit">Send</button>
-      </div>
-    </form>
-  </div>
+<div class="chat-container">
+    <h2>Chat</h2>
+
+    <div class="chat-users">
+        <h4>Available Users</h4>
+        <ul>
+            {% for user in users %}
+                {% if user.id != current_user.id %}
+                <li onclick="startChat({{ user.id }}, '{{ user.username }}')">
+                    <img src="{{ url_for('static', filename='avatars/' ~ user.avatar) }}" class="avatar">
+                    {{ user.username }}
+                </li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    </div>
+
+    <div class="chat-box" id="chat-box" style="display: none;">
+        <div class="chat-header">
+            <h4 id="chat-with"></h4>
+            <div class="chat-controls">
+                <a href="{{ url_for('main.call') }}"><button>📞</button></a>
+                <a href="{{ url_for('main.call') }}"><button>🎥</button></a>
+                <button onclick="closeChat()">✖️</button>
+            </div>
+        </div>
+        <div class="chat-messages" id="chat-messages"></div>
+        <form onsubmit="sendMessage(event)">
+            <input type="text" id="message" placeholder="Type a message..." autocomplete="off">
+            <button type="submit">Send</button>
+        </form>
+    </div>
 </div>
 
 <script>
-  const socket = io();
+let socket = io();
+let currentReceiverId = null;
 
-  const chatForm = document.getElementById('chat-form');
-  const chatBox = document.getElementById('chat-box');
-  const messageInput = document.getElementById('chat-message');
+function startChat(userId, username) {
+    currentReceiverId = userId;
+    document.getElementById('chat-with').innerText = "Chat with " + username;
+    document.getElementById('chat-box').style.display = 'block';
+    document.getElementById('chat-messages').innerHTML = '';
+}
 
-  chatForm.addEventListener('submit', function(e) {
-    e.preventDefault();
-    const msg = messageInput.value;
-    if (msg.trim()) {
-      socket.emit('send_message', msg);
-      messageInput.value = '';
+function closeChat() {
+    document.getElementById('chat-box').style.display = 'none';
+    currentReceiverId = null;
+}
+
+function sendMessage(event) {
+    event.preventDefault();
+    const msg = document.getElementById('message').value;
+    if (msg && currentReceiverId) {
+        socket.emit('send_message', {
+            sender_id: {{ current_user.id }},
+            receiver_id: currentReceiverId,
+            message: msg
+        });
+        addMessage("You", msg);
+        document.getElementById('message').value = '';
     }
-  });
+}
 
-  socket.on('receive_message', function(msg) {
-    const p = document.createElement('p');
-    p.textContent = msg;
-    chatBox.appendChild(p);
-    chatBox.scrollTop = chatBox.scrollHeight;
-  });
+function addMessage(sender, msg) {
+    const el = document.createElement('div');
+    el.innerHTML = `<strong>${sender}:</strong> ${msg}`;
+    document.getElementById('chat-messages').appendChild(el);
+}
+
+socket.on('receive_message', function(data) {
+    if (data.sender_id == currentReceiverId) {
+        addMessage(data.sender_name, data.message);
+    }
+});
 </script>
 {% endblock %}

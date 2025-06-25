@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="story-viewer">
+    <h2>{{ story_user.username }}'s Story</h2>
+    <div class="story-frame">
+        <img src="{{ url_for('static', filename='stories/' ~ story.image) }}" id="storyImage">
+    </div>
+
+    <div class="story-controls">
+        {% if prev_story_id %}
+        <a href="{{ url_for('main.story_view', story_id=prev_story_id) }}"><button>⬅️ Prev</button></a>
+        {% endif %}
+        {% if next_story_id %}
+        <a href="{{ url_for('main.story_view', story_id=next_story_id) }}"><button>➡️ Next</button></a>
+        {% endif %}
+        <a href="{{ url_for('main.home') }}"><button>🏠 Home</button></a>
+    </div>
+</div>
+
+<style>
+.story-viewer {
+    text-align: center;
+    padding: 20px;
+}
+.story-frame img {
+    width: 80%;
+    max-width: 500px;
+    height: auto;
+    border-radius: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+.story-controls {
+    margin-top: 20px;
+}
+</style>
+
+<script>
+// Auto move to next story after 5 seconds
+setTimeout(() => {
+    {% if next_story_id %}
+    window.location.href = "{{ url_for('main.story_view', story_id=next_story_id) }}";
+    {% endif %}
+}, 5000);
+</script>
+{% endblock %}

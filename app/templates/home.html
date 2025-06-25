@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container">
+    <h2>Welcome, {{ current_user.username }} 👋</h2>
+
+    <!-- Upload Story -->
+    <div class="upload-section">
+        <form method="POST" action="{{ url_for('main.upload_story') }}" enctype="multipart/form-data">
+            <label>Upload Story:</label>
+            <input type="file" name="story" accept="image/*" required>
+            <button type="submit">Add Story</button>
+        </form>
+    </div>
+
+    <!-- Upload Post -->
+    <div class="upload-section">
+        <form method="POST" action="{{ url_for('main.upload_post') }}" enctype="multipart/form-data">
+            <label>Upload Post:</label>
+            <input type="file" name="image" accept="image/*" required>
+            <input type="text" name="caption" placeholder="Write a caption..." required>
+            <button type="submit">Post</button>
+        </form>
+    </div>
+
+    <!-- Stories -->
+    <div class="stories">
+        <h3>Stories</h3>
+        <div class="story-bar">
+            {% for story in stories %}
+                <div class="story-item">
+                    <a href="{{ url_for('main.story_view', story_id=story.id) }}">
+                        <img src="{{ url_for('static', filename='stories/' ~ story.image) }}" alt="story">
+                    </a>
+                    <small>User {{ story.user_id }}</small>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Posts -->
+    <div class="posts">
+        <h3>Posts</h3>
+        {% for post in posts %}
+            <div class="post-card">
+                <div class="post-header">
+                    <img src="{{ url_for('static', filename='avatars/' ~ post.user.avatar) }}" class="avatar">
+                    <b>{{ post.user.username }}</b>
+                </div>
+                <img src="{{ url_for('static', filename='uploads/' ~ post.image) }}" class="post-img">
+                <div class="post-footer">
+                    <p><b>{{ post.user.username }}</b> {{ post.caption }}</p>
+                    <small>{{ post.timestamp.strftime('%d %b %Y, %I:%M %p') }}</small>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

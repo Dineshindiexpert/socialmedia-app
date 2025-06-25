@@ -1,5 +1,206 @@
-body { background: #fff; font-family: Arial, sans-serif; }
-.snap-card { border: none; border-radius: 10px; overflow: hidden; }
-.snap-media { object-fit: cover; }
-.navbar .nav-link { color: #333; }
-.nav-label { font-size: 0.6rem; }
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background-color: #fafafa;
+    color: #333;
+}
+
+header {
+    background: white;
+    padding: 10px 20px;
+    border-bottom: 1px solid #ddd;
+}
+
+nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+nav .logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.nav-links a {
+    margin-left: 20px;
+    text-decoration: none;
+    color: #333;
+}
+
+.auth-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 100px;
+}
+
+.auth-box {
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    width: 300px;
+    text-align: center;
+}
+
+.auth-box input[type="text"],
+.auth-box input[type="email"],
+.auth-box input[type="password"],
+.auth-box input[type="file"] {
+    width: 90%;
+    padding: 10px;
+    margin: 8px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.auth-box button {
+    width: 100%;
+    padding: 10px;
+    background-color: #3897f0;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    margin-top: 10px;
+    cursor: pointer;
+}
+
+.container {
+    max-width: 700px;
+    margin: 20px auto;
+}
+
+.upload-section {
+    background: white;
+    padding: 10px;
+    margin: 15px 0;
+    border-radius: 8px;
+}
+
+.stories {
+    background: white;
+    padding: 10px;
+    border-radius: 8px;
+    overflow-x: auto;
+}
+
+.story-bar {
+    display: flex;
+    gap: 10px;
+}
+
+.story-item {
+    text-align: center;
+}
+
+.story-item img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+}
+
+.posts {
+    margin-top: 20px;
+}
+
+.post-card {
+    background: white;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.post-header {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+}
+
+.avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+.avatar-large {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+}
+
+.post-img {
+    width: 100%;
+}
+
+.post-footer {
+    padding: 10px;
+}
+
+.flash {
+    background-color: #ffdddd;
+    color: #c00;
+    padding: 10px;
+    margin: 10px;
+    border-radius: 4px;
+}
+
+.profile-container {
+    max-width: 700px;
+    margin: 20px auto;
+}
+
+.user-posts {
+    margin-top: 20px;
+}
+
+.posts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 10px;
+}
+
+.post-item img {
+    width: 100%;
+    border-radius: 5px;
+}
+
+.chat-container {
+    max-width: 800px;
+    margin: 20px auto;
+}
+
+.chat-users ul {
+    list-style: none;
+    padding: 0;
+}
+
+.chat-users li {
+    cursor: pointer;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid #eee;
+}
+
+.chat-box {
+    background: white;
+    padding: 10px;
+    margin-top: 15px;
+    border-radius: 8px;
+}
+
+.chat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.chat-messages {
+    height: 300px;
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin-bottom: 10px;
+}
