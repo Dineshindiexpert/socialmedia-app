@@ -1,143 +1,86 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session
-from werkzeug.security import generate_password_hash, check_password_hash
+from flask import Blueprint, render_template, redirect, url_for, request, flash, session, jsonify
 from flask_login import login_user, logout_user, login_required, current_user
-from app.models import User, Post, Story, Message
-from app import db, login_manager
-import os
 from werkzeug.utils import secure_filename
-from datetime import datetime
+from .models import db, User, Post, Comment, Like, Story
+import os
+import uuid
 
 main = Blueprint('main', __name__)
 
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(int(user_id))
-
+# Home route
 @main.route('/')
 def index():
-    return redirect(url_for('main.login'))
+    if current_user.is_authenticated:
+        return redirect(url_for('main.dashboard'))
+    return render_template('home.html')
 
-@main.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        user = User.query.filter_by(email=request.form['email']).first()
-        if user and check_password_hash(user.password, request.form['password']):
-            login_user(user)
-            return redirect(url_for('main.home'))
-        else:
-            flash("Invalid credentials")
-    return render_template('login.html')
-
-@main.route('/register', methods=['GET', 'POST'])
-def register():
-    if request.method == 'POST':
-        username = request.form['username']
-        email = request.form['email']
-        password = generate_password_hash(request.form['password'])
-        avatar = request.files['avatar']
-        avatar_filename = secure_filename(avatar.filename)
-        avatar.save(os.path.join('app/static/avatars', avatar_filename))
-
-        user = User(username=username, email=email, password=password, avatar=avatar_filename)
-        db.session.add(user)
-        db.session.commit()
-        flash('Account created! Please login.')
-        return redirect(url_for('main.login'))
-    return render_template('register.html')
-
-@main.route('/home')
+# Dashboard
+@main.route('/dashboard')
 @login_required
-def home():
+def dashboard():
     posts = Post.query.order_by(Post.timestamp.desc()).all()
     stories = Story.query.order_by(Story.timestamp.desc()).all()
-    users = User.query.all()
-    return render_template('home.html', posts=posts, stories=stories, users=users)
+    return render_template('dashboard.html', posts=posts, stories=stories)
 
-@main.route('/logout')
-@login_required
-def logout():
-    logout_user()
-    return redirect(url_for('main.login'))
-
-@main.route('/upload_post', methods=['POST'])
+# Upload post
+@main.route('/upload', methods=['GET', 'POST'])
 @login_required
 def upload_post():
-    image = request.files['image']
-    caption = request.form['caption']
-    filename = secure_filename(image.filename)
-    image.save(os.path.join('app/static/uploads', filename))
+    if request.method == 'POST':
+        file = request.files['file']
+        caption = request.form.get('caption')
 
-    post = Post(image=filename, caption=caption, user_id=current_user.id)
-    db.session.add(post)
-    db.session.commit()
-    return redirect(url_for('main.home'))
+        if file:
+            filename = secure_filename(file.filename)
+            unique_filename = str(uuid.uuid4()) + "_" + filename
+            filepath = os.path.join('app/static/uploads', unique_filename)
+            file.save(filepath)
 
-@main.route('/upload_story', methods=['POST'])
-@login_required
-def upload_story():
-    image = request.files['story']
-    filename = secure_filename(image.filename)
-    image.save(os.path.join('app/static/stories', filename))
+            post = Post(user_id=current_user.id, image_file=unique_filename, caption=caption)
+            db.session.add(post)
+            db.session.commit()
 
-    story = Story(image=filename, user_id=current_user.id)
-    db.session.add(story)
-    db.session.commit()
-    return redirect(url_for('main.home'))
+            flash("Post uploaded successfully!", "success")
+            return redirect(url_for('main.dashboard'))
 
-@main.route('/profile/<int:user_id>')
-@login_required
-def profile(user_id):
-    user = User.query.get_or_404(user_id)
-    posts = Post.query.filter_by(user_id=user.id).all()
-    return render_template('profile.html', user=user, posts=posts)
+    return render_template('upload_post.html')
 
-@main.route('/chat')
+# Like post
+@main.route('/like/<int:post_id>', methods=['POST'])
 @login_required
-def chat():
-    users = User.query.all()
-    return render_template('chat.html', users=users)
-@main.route('/story/<int:story_id>')
-@login_required
-def story_view(story_id):
-    story = Story.query.get_or_404(story_id)
-    user = User.query.get(story.user_id)
-    return render_template('story_view.html', story=story, story_user=user)
-@main.route('/like/<int:post_id>')
-@login_required
-def like(post_id):
+def like_post(post_id):
+    post = Post.query.get_or_404(post_id)
     like = Like.query.filter_by(user_id=current_user.id, post_id=post_id).first()
     if like:
         db.session.delete(like)
     else:
-        db.session.add(Like(user_id=current_user.id, post_id=post_id))
+        new_like = Like(user_id=current_user.id, post_id=post_id)
+        db.session.add(new_like)
     db.session.commit()
-    return redirect(url_for('main.home'))
+    return jsonify({'likes': len(post.likes)})
 
+# Comment post
 @main.route('/comment/<int:post_id>', methods=['POST'])
 @login_required
-def comment(post_id):
-    text = request.form['text']
-    db.session.add(Comment(user_id=current_user.id, post_id=post_id, text=text))
-    db.session.commit()
-    return redirect(url_for('main.home'))
+def comment_post(post_id):
+    content = request.form.get('comment')
+    if content:
+        comment = Comment(user_id=current_user.id, post_id=post_id, content=content)
+        db.session.add(comment)
+        db.session.commit()
+    return redirect(url_for('main.dashboard'))
+
+# Profile
+@main.route('/profile/<username>')
+@login_required
+def profile(username):
+    user = User.query.filter_by(username=username).first_or_404()
+    posts = Post.query.filter_by(user_id=user.id).order_by(Post.timestamp.desc()).all()
+    return render_template('profile.html', user=user, posts=posts)
+
+# Story view (✅ keep only this one!)
 @main.route('/story/<int:story_id>')
 @login_required
 def story_view(story_id):
     story = Story.query.get_or_404(story_id)
-    user = User.query.get(story.user_id)
-
-    # Get all story IDs ordered by ID
-    all_stories = Story.query.order_by(Story.id).all()
-    story_ids = [s.id for s in all_stories]
-    current_index = story_ids.index(story_id)
-
-    prev_story_id = story_ids[current_index - 1] if current_index > 0 else None
-    next_story_id = story_ids[current_index + 1] if current_index < len(story_ids) - 1 else None
-
-    return render_template(
-        'story_view.html',
-        story=story,
-        story_user=user,
-        prev_story_id=prev_story_id,
-        next_story_id=next_story_id
-    )
+    return render_template('story_view.html', story=story)
