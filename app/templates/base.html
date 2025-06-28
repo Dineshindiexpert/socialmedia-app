@@ -3,28 +3,52 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}InstaClone{% endblock %}</title>
+  <title>{% block title %}SnapClone{% endblock %}</title>
+
+  <!-- Bootstrap CSS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Custom Snapchat-style CSS -->
+  <style>
+    body { background: #fff; font-family: 'Arial', sans-serif; }
+    .navbar, .bottom-nav { background: #FFFC00; }
+    .navbar-brand { color: #000 !important; font-weight: bold; }
+    .bottom-nav .nav-link { color: #000; font-size: 1.2rem; }
+    .snap-button { background: #fff; border-radius: 50%; padding: 15px; margin-top: -30px; box-shadow: 0 0 5px rgba(0,0,0,0.2); }
+    .snap-button i { color: #FFFC00; font-size: 2rem; }
+    .content-wrap { padding-bottom: 80px; }
+  </style>
 </head>
-<body>
-  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <div class="container-fluid">
-      <a class="navbar-brand" href="/dashboard">InstaClone</a>
-      <div>
-        <a class="btn btn-outline-light me-2" href="/call">Call</a>
-        <a class="btn btn-outline-danger" href="/logout">Logout</a>
-      </div>
+<body class="d-flex flex-column vh-100">
+
+  <!-- Top Navbar -->
+  <nav class="navbar navbar-expand-lg fixed-top">
+    <div class="container-fluid justify-content-center">
+      <span class="navbar-brand">SnapClone</span>
     </div>
   </nav>
-  <div class="container mt-4">
-    {% with messages = get_flashed_messages() %}
-      {% if messages %}
-        <div class="alert alert-warning">
-          {% for msg in messages %} {{ msg }} {% endfor %}
-        </div>
-      {% endif %}
-    {% endwith %}
-    {% block content %}{% endblock %}
+
+  <!-- Main Content -->
+  <div class="flex-grow-1 overflow-auto content-wrap mt-5">
+    <div class="container">
+      {% block content %}{% endblock %}
+    </div>
   </div>
+
+  <!-- Bottom Navigation resembling Snapchat -->
+  <nav class="navbar navbar-light bottom-nav fixed-bottom border-top">
+    <div class="container d-flex justify-content-between align-items-center">
+      <a class="nav-link text-center" href="/chat"><i class="fa-solid fa-comment"></i></a>
+      <a class="nav-link text-center" href="/profile"><i class="fa-solid fa-user"></i></a>
+      <a class="snap-button d-flex align-items-center justify-content-center" href="/upload"><i class="fa-solid fa-camera"></i></a>
+      <a class="nav-link text-center" href="/call"><i class="fa-solid fa-video"></i></a>
+      <a class="nav-link text-center" href="/dashboard"><i class="fa-solid fa-house"></i></a>
+    </div>
+  </nav>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.socket.io/4.3.2/socket.io.min.js"></script>
 </body>
 </html>

@@ -1,6 +1,12 @@
 {% extends 'base.html' %}
-{% block title %}Stories - InstaClone{% endblock %}
+{% block title %}Stories - SnapClone{% endblock %}
 {% block content %}
-<h2>Stories</h2>
-<p>This is where stories will be displayed.</p>
+  <h3 class="text-center my-4">Stories</h3>
+  <div class="row g-3">
+    <!-- Example story; loop your stories -->
+    <div class="col-4 text-center">
+      <img src="{{ url_for('static', filename='uploads/' ~ story.user.profile_pic) }}" class="rounded-circle mb-2" width="80" height="80">
+      <p>{{ story.user.username }}</p>
+    </div>
+  </div>
 {% endblock %}

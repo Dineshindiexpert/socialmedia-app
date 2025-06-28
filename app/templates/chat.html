@@ -1,25 +1,24 @@
 {% extends 'base.html' %}
-{% block title %}Chat - InstaClone{% endblock %}
+{% block title %}Chat - SnapClone{% endblock %}
 {% block content %}
-<h2>Chat Room</h2>
-<div id="chat-box" class="border p-3 mb-2" style="height: 300px; overflow-y: scroll;"></div>
-<input type="text" id="chat-message" class="form-control mb-2" placeholder="Type a message">
-<button id="send-btn" class="btn btn-primary">Send</button>
-<script>
-  const socket = io();
-  const sendBtn = document.getElementById('send-btn');
-  const chatBox = document.getElementById('chat-box');
-
-  sendBtn.onclick = () => {
-    const msg = document.getElementById('chat-message').value;
-    socket.emit('message', msg);
-    document.getElementById('chat-message').value = '';
-  };
-
-  socket.on('message', msg => {
-    const p = document.createElement('p');
-    p.textContent = msg;
-    chatBox.appendChild(p);
-  });
-</script>
-{% endblock %}
+  <div class="mt-4">
+    <div id="chat-box" class="border border-secondary rounded p-3 mb-2" style="height: 300px; overflow-y: scroll;"></div>
+    <div class="d-flex">
+      <input type="text" id="chat-message" class="form-control me-2" placeholder="Send a snap...">
+      <button id="send-btn" class="btn btn-dark"><i class="fa-regular fa-paper-plane"></i></button>
+    </div>
+  </div>
+  <script>
+    const socket = io();
+    document.getElementById('send-btn').onclick = () => {
+      const msg = document.getElementById('chat-message').value;
+      socket.emit('message', msg);
+      document.getElementById('chat-message').value = '';
+    };
+    socket.on('message', msg => {
+      const p = document.createElement('p');
+      p.className = 'bg-light rounded px-2 py-1 mb-1';
+      p.textContent = msg;
+      document.getElementById('chat-box').appendChild(p);
+    });
+  </script>

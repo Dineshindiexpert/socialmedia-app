@@ -1,6 +1,18 @@
 {% extends 'base.html' %}
-{% block title %}Home - InstaClone{% endblock %}
+{% block title %}Home - SnapClone{% endblock %}
 {% block content %}
-<h2>Home Feed</h2>
-<p>Welcome to the home page.</p>
+  <h3 class="text-center my-4">Your Snaps</h3>
+  <div class="row g-3">
+    {% for post in posts %}
+      <div class="col-12">
+        <div class="card border-0 shadow-sm rounded-3">
+          {% if post.media_type == 'image' %}
+            <img src="{{ url_for('static', filename='uploads/' ~ post.filename) }}" class="card-img-top">
+          {% elif post.media_type == 'video' %}
+            <video controls class="w-100"><source src="{{ url_for('static', filename='uploads/' ~ post.filename) }}" type="video/mp4"></video>
+          {% endif %}
+        </div>
+      </div>
+    {% endfor %}
+  </div>
 {% endblock %}
