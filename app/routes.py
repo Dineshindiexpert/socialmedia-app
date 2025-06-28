@@ -1,8 +1,7 @@
-from flask import render_template, request, redirect, url_for, flash, session
+import os
+from flask import render_template, request, redirect, url_for, flash
 from werkzeug.utils import secure_filename
 from flask_login import login_user, logout_user, login_required, current_user
-import os
-
 from app import app, db, login_manager, socketio
 from app.models import User
 from flask_socketio import emit
@@ -24,7 +23,7 @@ def login():
         if user:
             login_user(user)
             return redirect(url_for('dashboard'))
-        flash("Invalid credentials")
+        flash('Invalid credentials')
     return render_template('login.html')
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -34,16 +33,17 @@ def register():
         email = request.form['email']
         password = request.form['password']
         profile = request.files['profile']
-
-        filename = secure_filename(profile.filename)
-        profile_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        profile.save(profile_path)
-
-        user = User(username=username, email=email, password=password, profile_pic=filename)
-        db.session.add(user)
-        db.session.commit()
-        flash("Registered successfully!")
-        return redirect(url_for('login'))
+        if User.query.filter_by(email=email).first():
+            flash('Email already registered.')
+        else:
+            filename = secure_filename(profile.filename)
+            upload_path = os.path.join(app.static_folder, 'uploads', filename)
+            profile.save(upload_path)
+            new_user = User(username=username, email=email, password=password, profile_pic=filename)
+            db.session.add(new_user)
+            db.session.commit()
+            login_user(new_user)
+            return redirect(url_for('dashboard'))
     return render_template('register.html')
 
 @app.route('/dashboard')

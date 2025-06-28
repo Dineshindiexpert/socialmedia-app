@@ -2,8 +2,10 @@ __pycache__/
 *.pyc
 instance/
 .env
-*.sqlite3
-*.db
-*.log
+*.env
 .vscode/
-*.zip
+*.db-journal
+*.log
+
+# Comment out SQLite database so it can be committed
+# db.sqlite3
