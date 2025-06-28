@@ -14,3 +14,18 @@ login_manager.login_view = 'login'
 socketio = SocketIO(app, cors_allowed_origins="*")
 
 from app import routes, models  # noqa
+from app.models import User
+
+with app.app_context():
+    db.create_all()
+    
+    # Optional: create a dummy user if none exists
+    if not User.query.first():
+        dummy = User(
+            username="testuser",
+            email="dineshjangra@gmail.com",
+            password="123456",  # You can hash later
+            profile_pic="default.jpg"
+        )
+        db.session.add(dummy)
+        db.session.commit()
