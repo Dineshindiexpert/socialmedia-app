@@ -1,14 +1,31 @@
 {% extends 'base.html' %}
+{% block title %}Login - InstaClone{% endblock %}
 {% block content %}
-<div class="auth-container">
-    <div class="auth-box">
-        <h2>Login to SocialApp</h2>
-        <form method="POST">
-            <input type="email" name="email" placeholder="Email" required><br>
-            <input type="password" name="password" placeholder="Password" required><br>
-            <button type="submit">Login</button>
-        </form>
-        <p>Don't have an account? <a href="{{ url_for('main.register') }}">Register here</a></p>
-    </div>
-</div>
+<h2>Login</h2>
+<form method="POST">
+  <input name="email" class="form-control mb-2" placeholder="Email">
+  <input name="password" type="password" class="form-control mb-2" placeholder="Password">
+  <button class="btn btn-primary">Login</button>
+  <p class="mt-2">Don't have an account? <a href="/register">Register</a></p>
+</form>
 {% endblock %}
+```
+
+---
+
+**✅ `templates/register.html`**
+```html
+{% extends 'base.html' %}
+{% block title %}Register - InstaClone{% endblock %}
+{% block content %}
+<h2>Register</h2>
+<form method="POST" enctype="multipart/form-data">
+  <input name="username" class="form-control mb-2" placeholder="Username">
+  <input name="email" class="form-control mb-2" placeholder="Email">
+  <input name="password" type="password" class="form-control mb-2" placeholder="Password">
+  <label>Upload Profile:</label>
+  <input type="file" name="profile" class="form-control mb-2">
+  <button class="btn btn-success">Register</button>
+</form>
+{% endblock %}
+```

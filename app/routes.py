@@ -1,86 +1,80 @@
-from flask import Blueprint, render_template, redirect, url_for, request, flash, session, jsonify
-from flask_login import login_user, logout_user, login_required, current_user
+from flask import render_template, request, redirect, url_for, flash, session
 from werkzeug.utils import secure_filename
-from .models import db, User, Post, Comment, Like, Story
+from flask_login import login_user, logout_user, login_required, current_user
 import os
-import uuid
 
-main = Blueprint('main', __name__)
+from app import app, db, login_manager, socketio
+from app.models import User
+from flask_socketio import emit
 
-# Home route
-@main.route('/')
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+@app.route('/')
 def index():
-    if current_user.is_authenticated:
-        return redirect(url_for('main.dashboard'))
-    return render_template('home.html')
+    return redirect(url_for('login'))
 
-# Dashboard
-@main.route('/dashboard')
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
+        user = User.query.filter_by(email=email, password=password).first()
+        if user:
+            login_user(user)
+            return redirect(url_for('dashboard'))
+        flash("Invalid credentials")
+    return render_template('login.html')
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        username = request.form['username']
+        email = request.form['email']
+        password = request.form['password']
+        profile = request.files['profile']
+
+        filename = secure_filename(profile.filename)
+        profile_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        profile.save(profile_path)
+
+        user = User(username=username, email=email, password=password, profile_pic=filename)
+        db.session.add(user)
+        db.session.commit()
+        flash("Registered successfully!")
+        return redirect(url_for('login'))
+    return render_template('register.html')
+
+@app.route('/dashboard')
 @login_required
 def dashboard():
-    posts = Post.query.order_by(Post.timestamp.desc()).all()
-    stories = Story.query.order_by(Story.timestamp.desc()).all()
-    return render_template('dashboard.html', posts=posts, stories=stories)
+    return render_template('dashboard.html', user=current_user)
 
-# Upload post
-@main.route('/upload', methods=['GET', 'POST'])
+@app.route('/logout')
 @login_required
-def upload_post():
-    if request.method == 'POST':
-        file = request.files['file']
-        caption = request.form.get('caption')
+def logout():
+    logout_user()
+    return redirect(url_for('login'))
 
-        if file:
-            filename = secure_filename(file.filename)
-            unique_filename = str(uuid.uuid4()) + "_" + filename
-            filepath = os.path.join('app/static/uploads', unique_filename)
-            file.save(filepath)
-
-            post = Post(user_id=current_user.id, image_file=unique_filename, caption=caption)
-            db.session.add(post)
-            db.session.commit()
-
-            flash("Post uploaded successfully!", "success")
-            return redirect(url_for('main.dashboard'))
-
-    return render_template('upload_post.html')
-
-# Like post
-@main.route('/like/<int:post_id>', methods=['POST'])
+@app.route('/call')
 @login_required
-def like_post(post_id):
-    post = Post.query.get_or_404(post_id)
-    like = Like.query.filter_by(user_id=current_user.id, post_id=post_id).first()
-    if like:
-        db.session.delete(like)
-    else:
-        new_like = Like(user_id=current_user.id, post_id=post_id)
-        db.session.add(new_like)
-    db.session.commit()
-    return jsonify({'likes': len(post.likes)})
+def call():
+    return render_template('call.html')
 
-# Comment post
-@main.route('/comment/<int:post_id>', methods=['POST'])
-@login_required
-def comment_post(post_id):
-    content = request.form.get('comment')
-    if content:
-        comment = Comment(user_id=current_user.id, post_id=post_id, content=content)
-        db.session.add(comment)
-        db.session.commit()
-    return redirect(url_for('main.dashboard'))
+# SocketIO handlers
+@socketio.on('video-offer')
+def handle_offer(data):
+    emit('video-offer', data, broadcast=True, include_self=False)
 
-# Profile
-@main.route('/profile/<username>')
-@login_required
-def profile(username):
-    user = User.query.filter_by(username=username).first_or_404()
-    posts = Post.query.filter_by(user_id=user.id).order_by(Post.timestamp.desc()).all()
-    return render_template('profile.html', user=user, posts=posts)
+@socketio.on('video-answer')
+def handle_answer(data):
+    emit('video-answer', data, broadcast=True, include_self=False)
 
-# Story view (✅ keep only this one!)
-@main.route('/story/<int:story_id>')
-@login_required
-def story_view(story_id):
-    story = Story.query.get_or_404(story_id)
-    return render_template('story_view.html', story=story)
+@socketio.on('ice-candidate')
+def handle_ice(data):
+    emit('ice-candidate', data, broadcast=True, include_self=False)
+
+@socketio.on('end-call')
+def handle_end():
+    emit('end-call', broadcast=True, include_self=False)
