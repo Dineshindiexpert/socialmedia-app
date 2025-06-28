@@ -1,79 +1,25 @@
 {% extends 'base.html' %}
+{% block title %}Chat - InstaClone{% endblock %}
 {% block content %}
-<div class="chat-container">
-    <h2>Chat</h2>
-
-    <div class="chat-users">
-        <h4>Available Users</h4>
-        <ul>
-            {% for user in users %}
-                {% if user.id != current_user.id %}
-                <li onclick="startChat({{ user.id }}, '{{ user.username }}')">
-                    <img src="{{ url_for('static', filename='avatars/' ~ user.avatar) }}" class="avatar">
-                    {{ user.username }}
-                </li>
-                {% endif %}
-            {% endfor %}
-        </ul>
-    </div>
-
-    <div class="chat-box" id="chat-box" style="display: none;">
-        <div class="chat-header">
-            <h4 id="chat-with"></h4>
-            <div class="chat-controls">
-                <a href="{{ url_for('main.call') }}"><button>📞</button></a>
-                <a href="{{ url_for('main.call') }}"><button>🎥</button></a>
-                <button onclick="closeChat()">✖️</button>
-            </div>
-        </div>
-        <div class="chat-messages" id="chat-messages"></div>
-        <form onsubmit="sendMessage(event)">
-            <input type="text" id="message" placeholder="Type a message..." autocomplete="off">
-            <button type="submit">Send</button>
-        </form>
-    </div>
-</div>
-
+<h2>Chat Room</h2>
+<div id="chat-box" class="border p-3 mb-2" style="height: 300px; overflow-y: scroll;"></div>
+<input type="text" id="chat-message" class="form-control mb-2" placeholder="Type a message">
+<button id="send-btn" class="btn btn-primary">Send</button>
 <script>
-let socket = io();
-let currentReceiverId = null;
+  const socket = io();
+  const sendBtn = document.getElementById('send-btn');
+  const chatBox = document.getElementById('chat-box');
 
-function startChat(userId, username) {
-    currentReceiverId = userId;
-    document.getElementById('chat-with').innerText = "Chat with " + username;
-    document.getElementById('chat-box').style.display = 'block';
-    document.getElementById('chat-messages').innerHTML = '';
-}
+  sendBtn.onclick = () => {
+    const msg = document.getElementById('chat-message').value;
+    socket.emit('message', msg);
+    document.getElementById('chat-message').value = '';
+  };
 
-function closeChat() {
-    document.getElementById('chat-box').style.display = 'none';
-    currentReceiverId = null;
-}
-
-function sendMessage(event) {
-    event.preventDefault();
-    const msg = document.getElementById('message').value;
-    if (msg && currentReceiverId) {
-        socket.emit('send_message', {
-            sender_id: {{ current_user.id }},
-            receiver_id: currentReceiverId,
-            message: msg
-        });
-        addMessage("You", msg);
-        document.getElementById('message').value = '';
-    }
-}
-
-function addMessage(sender, msg) {
-    const el = document.createElement('div');
-    el.innerHTML = `<strong>${sender}:</strong> ${msg}`;
-    document.getElementById('chat-messages').appendChild(el);
-}
-
-socket.on('receive_message', function(data) {
-    if (data.sender_id == currentReceiverId) {
-        addMessage(data.sender_name, data.message);
-    }
-});
+  socket.on('message', msg => {
+    const p = document.createElement('p');
+    p.textContent = msg;
+    chatBox.appendChild(p);
+  });
 </script>
 {% endblock %}
