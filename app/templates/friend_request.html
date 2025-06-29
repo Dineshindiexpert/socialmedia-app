@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Friend Requests - MySocial</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="logo">MySocial</div>
+            <ul class="nav-links">
+                <li><a href="{{ url_for('dashboard') }}">Home</a></li>
+                <li><a href="{{ url_for('search') }}">Search</a></li>
+                <li><a href="{{ url_for('friend_requests') }}" class="active">Requests</a></li>
+                <li><a href="{{ url_for('chat') }}">Chat</a></li>
+                <li><a href="{{ url_for('call') }}">Call</a></li>
+                <li><a href="{{ url_for('logout') }}">Logout</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="container">
+        <h2>Friend Requests</h2>
+
+        {% if requests %}
+            <ul class="request-list">
+                {% for req in requests %}
+                    <li>
+                        <img src="{{ url_for('static', filename='uploads/' + req.sender.profile_pic) }}" alt="Profile" class="profile-thumb">
+                        {{ req.sender.username }} ({{ req.sender.email }})
+                        <a href="{{ url_for('accept_request', request_id=req.id) }}" class="btn-accept">Accept</a>
+                        <a href="{{ url_for('reject_request', request_id=req.id) }}" class="btn-reject">Reject</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No pending requests.</p>
+        {% endif %}
+    </main>
+</body>
+</html>

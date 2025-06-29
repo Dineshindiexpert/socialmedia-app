@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Search Users - MySocial</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="logo">MySocial</div>
+            <ul class="nav-links">
+                <li><a href="{{ url_for('dashboard') }}">Home</a></li>
+                <li><a href="{{ url_for('search') }}">Search</a></li>
+                <li><a href="{{ url_for('friend_requests') }}">Requests</a></li>
+                <li><a href="{{ url_for('chat') }}">Chat</a></li>
+                <li><a href="{{ url_for('call') }}">Call</a></li>
+                <li><a href="{{ url_for('logout') }}">Logout</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="container">
+        <h2>Search People</h2>
+        <form method="POST" class="search-form">
+            <input type="text" name="query" placeholder="Enter name or email" required>
+            <button type="submit">Search</button>
+        </form>
+
+        {% if results %}
+            <h3>Search Results:</h3>
+            <ul class="search-results">
+                {% for user in results %}
+                    {% if user.id != current_user.id %}
+                        <li>
+                            <img src="{{ url_for('static', filename='uploads/' + user.profile_pic) }}" alt="Profile" class="profile-thumb">
+                            {{ user.username }} ({{ user.email }})
+                            {% if user in current_user.friends %}
+                                <span class="tag">Already Friends</span>
+                            {% elif user in sent_requests %}
+                                <span class="tag">Request Sent</span>
+                            {% else %}
+                                <a href="{{ url_for('send_request', user_id=user.id) }}" class="btn-send">Send Request</a>
+                            {% endif %}
+                        </li>
+                    {% endif %}
+                {% endfor %}
+            </ul>
+        {% endif %}
+    </main>
+</body>
+</html>

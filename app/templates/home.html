@@ -1,18 +1,29 @@
-{% extends 'base.html' %}
-{% block title %}Home - SnapClone{% endblock %}
-{% block content %}
-  <h3 class="text-center my-4">Your Snaps</h3>
-  <div class="row g-3">
-    {% for post in posts %}
-      <div class="col-12">
-        <div class="card border-0 shadow-sm rounded-3">
-          {% if post.media_type == 'image' %}
-            <img src="{{ url_for('static', filename='uploads/' ~ post.filename) }}" class="card-img-top">
-          {% elif post.media_type == 'video' %}
-            <video controls class="w-100"><source src="{{ url_for('static', filename='uploads/' ~ post.filename) }}" type="video/mp4"></video>
-          {% endif %}
-        </div>
-      </div>
-    {% endfor %}
-  </div>
-{% endblock %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Home - MySocial</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="logo">MySocial</div>
+            <ul class="nav-links">
+                <li><a href="{{ url_for('dashboard') }}">Home</a></li>
+                <li><a href="{{ url_for('search') }}">Search</a></li>
+                <li><a href="{{ url_for('friend_requests') }}">Requests</a></li>
+                <li><a href="{{ url_for('chat') }}">Chat</a></li>
+                <li><a href="{{ url_for('call') }}">Call</a></li>
+                <li><a href="{{ url_for('logout') }}">Logout</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="container">
+        <h2>Welcome, {{ user.username }} 👋</h2>
+        <p>Use the top menu to explore your social space. Connect with friends, chat, or make a call!</p>
+        <img src="{{ url_for('static', filename='uploads/' + user.profile_pic) }}" alt="Profile Picture" class="profile-pic">
+    </main>
+</body>
+</html>

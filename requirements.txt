@@ -1,6 +1,6 @@
-Flask
-Flask-Login
-Flask-SQLAlchemy
-Flask-SocketIO
+flask
+flask-login
+flask-sqlalchemy
+flask-socketio
 eventlet
 gunicorn

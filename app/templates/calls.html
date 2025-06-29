@@ -1,0 +1,136 @@
+<!-- templates/calls.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Call Page - MySocial</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: white;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 800px;
+      margin: 20px auto;
+      padding: 20px;
+      background-color: #f5f5f5;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+      text-align: center;
+    }
+    video {
+      width: 100%;
+      max-height: 400px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+    }
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+    }
+    .controls button {
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 30px;
+      background-color: #ff3b30;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    .controls button:hover {
+      background-color: #e60000;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Live Call</h2>
+    <video id="localVideo" autoplay muted playsinline></video>
+    <video id="remoteVideo" autoplay playsinline></video>
+    <div class="controls">
+      <button id="startCall"><i class="fas fa-phone"></i> Start Call</button>
+      <button id="endCall"><i class="fas fa-phone-slash"></i> End Call</button>
+    </div>
+  </div>
+
+  <script src="https://cdn.socket.io/4.3.2/socket.io.min.js"></script>
+  <script>
+    const socket = io();
+    const localVideo = document.getElementById('localVideo');
+    const remoteVideo = document.getElementById('remoteVideo');
+    const startCallBtn = document.getElementById('startCall');
+    const endCallBtn = document.getElementById('endCall');
+
+    let localStream;
+    let peerConnection;
+    const config = {
+      iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' }
+      ]
+    };
+
+    async function startCall() {
+      localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      localVideo.srcObject = localStream;
+      peerConnection = new RTCPeerConnection(config);
+
+      localStream.getTracks().forEach(track => {
+        peerConnection.addTrack(track, localStream);
+      });
+
+      peerConnection.onicecandidate = event => {
+        if (event.candidate) socket.emit('ice-candidate', event.candidate);
+      };
+
+      peerConnection.ontrack = event => {
+        remoteVideo.srcObject = event.streams[0];
+      };
+
+      const offer = await peerConnection.createOffer();
+      await peerConnection.setLocalDescription(offer);
+      socket.emit('video-offer', offer);
+    }
+
+    socket.on('video-offer', async (offer) => {
+      if (!peerConnection) startCall();
+      await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
+      const answer = await peerConnection.createAnswer();
+      await peerConnection.setLocalDescription(answer);
+      socket.emit('video-answer', answer);
+    });
+
+    socket.on('video-answer', async (answer) => {
+      await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
+    });
+
+    socket.on('ice-candidate', async (candidate) => {
+      try {
+        await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+      } catch (err) {
+        console.error('Error adding received ice candidate', err);
+      }
+    });
+
+    socket.on('end-call', () => {
+      peerConnection.close();
+      peerConnection = null;
+      remoteVideo.srcObject = null;
+    });
+
+    startCallBtn.addEventListener('click', startCall);
+    endCallBtn.addEventListener('click', () => {
+      socket.emit('end-call');
+      peerConnection.close();
+      peerConnection = null;
+      remoteVideo.srcObject = null;
+    });
+  </script>
+</body>
+</html>

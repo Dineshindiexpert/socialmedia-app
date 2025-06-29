@@ -1,24 +1,136 @@
-{% extends 'base.html' %}
-{% block title %}Chat - SnapClone{% endblock %}
-{% block content %}
-  <div class="mt-4">
-    <div id="chat-box" class="border border-secondary rounded p-3 mb-2" style="height: 300px; overflow-y: scroll;"></div>
-    <div class="d-flex">
-      <input type="text" id="chat-message" class="form-control me-2" placeholder="Send a snap...">
-      <button id="send-btn" class="btn btn-dark"><i class="fa-regular fa-paper-plane"></i></button>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Chat - MySocial</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #ffffff;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        .chat-header {
+            padding: 15px;
+            background-color: #f8f8f8;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #ddd;
+        }
+        .chat-header img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        .chat-header .username {
+            font-weight: bold;
+        }
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        .message {
+            margin-bottom: 15px;
+            max-width: 70%;
+            padding: 10px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+        .message.sent {
+            background-color: #e2f0ff;
+            margin-left: auto;
+        }
+        .message.received {
+            background-color: #f1f1f1;
+            margin-right: auto;
+        }
+        .chat-input {
+            padding: 10px 15px;
+            display: flex;
+            border-top: 1px solid #ddd;
+            background: #fff;
+        }
+        .chat-input input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 30px;
+            outline: none;
+        }
+        .chat-input button {
+            background: #007bff;
+            color: #fff;
+            border: none;
+            padding: 10px 15px;
+            margin-left: 10px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        @media (max-width: 600px) {
+            .chat-header .username {
+                font-size: 16px;
+            }
+            .message {
+                font-size: 13px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <img src="{{ url_for('static', filename='uploads/' ~ user.profile_pic) }}" alt="User">
+            <span class="username">{{ user.username }}</span>
+        </div>
+
+        <div class="chat-messages" id="chat-box">
+            <!-- Messages will be inserted dynamically with JavaScript -->
+        </div>
+
+        <div class="chat-input">
+            <input type="text" id="message-input" placeholder="Type your message...">
+            <button onclick="sendMessage()">📨</button>
+        </div>
     </div>
-  </div>
-  <script>
-    const socket = io();
-    document.getElementById('send-btn').onclick = () => {
-      const msg = document.getElementById('chat-message').value;
-      socket.emit('message', msg);
-      document.getElementById('chat-message').value = '';
-    };
-    socket.on('message', msg => {
-      const p = document.createElement('p');
-      p.className = 'bg-light rounded px-2 py-1 mb-1';
-      p.textContent = msg;
-      document.getElementById('chat-box').appendChild(p);
-    });
-  </script>
+
+    <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+    <script>
+        const socket = io();
+        const chatBox = document.getElementById('chat-box');
+        const input = document.getElementById('message-input');
+
+        socket.on('receive_message', function(data) {
+            const msg = document.createElement('div');
+            msg.classList.add('message', 'received');
+            msg.textContent = data.message;
+            chatBox.appendChild(msg);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        });
+
+        function sendMessage() {
+            const message = input.value.trim();
+            if (message) {
+                const msg = document.createElement('div');
+                msg.classList.add('message', 'sent');
+                msg.textContent = message;
+                chatBox.appendChild(msg);
+                chatBox.scrollTop = chatBox.scrollHeight;
+
+                socket.emit('send_message', { message });
+                input.value = '';
+            }
+        }
+    </script>
+</body>
+</html>
