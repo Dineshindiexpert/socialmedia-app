@@ -1,16 +1,21 @@
-import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
-from flask_socketio import SocketIO
 
-app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your_secret_key_here'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite3'
-app.config['UPLOAD_FOLDER'] = os.path.join('static', 'uploads')
+db = SQLAlchemy()
+login_manager = LoginManager()
 
-db = SQLAlchemy(app)
-login_manager = LoginManager(app)
-socketio = SocketIO(app)
+def create_app():
+    app = Flask(__name__)
+    app.config['SECRET_KEY'] = 'your-secret-key'
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-from app import routes
+    db.init_app(app)
+    login_manager.init_app(app)
+
+    from .models import User  # import after db.init_app
+    from .routes import main as main_blueprint
+    app.register_blueprint(main_blueprint)
+
+    return app

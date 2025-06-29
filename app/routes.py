@@ -5,7 +5,12 @@ from werkzeug.utils import secure_filename
 from app import app, db, login_manager, socketio
 from app.models import User, FriendRequest
 from flask_socketio import emit
+from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask_login import login_user, logout_user, login_required, current_user
+from .models import User
+from . import db
 
+main = Blueprint('main', __name__)
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
